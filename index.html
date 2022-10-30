@@ -1,125 +1,135 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<meta charset="UTF-8" />
+	<meta charset="UTF-8" />
 
-<style id="webmakerstyle">
-	* {
-		box-sizing: border-box;
-		padding: 0;
-		margin: 0;
-		border: 0;
-	}
-#canvas {
-	height: 100vh;
-	width: 100vw;
-}
-</style>
+	<style id="webmakerstyle">
+		* {
+			box-sizing: border-box;
+			padding: 0;
+			margin: 0;
+			border: 0;
+		}
+
+		#canvas {
+			height: 100vh;
+			width: 100vw;
+		}
+	</style>
 </head>
+
 <body>
-<canvas id="canvas" width="1200" height="600" style="border: 2px solid black;"></canvas>
+	<canvas id="canvas" width="1200" height="600" style="border: 2px solid black;"></canvas>
 
-<script>
-const canvas = document.getElementById('canvas');
+	<script>
+		const canvas = document.getElementById('canvas');
 
-function make2DGrid(rows, cols) {
-	let arr = new Array(rows);
-	for (let i = 0; i < arr.length; i++) {
-		arr[i] = new Array(cols);
-	}
-	return arr;
-}
-
-function render(arr) {
-	const cellWidth = canvas.width/arr.length;
-	const cellHeight = cellWidth;
-	const ctx = canvas.getContext('2d');
-	console.table(arr)
-	let x = 0, y = 0;
-	for (let i = 0; i < arr.length; i++) {
-		for (let j = 0; j < arr[i].length; j++) {
-			if (arr[i][j]) {
-				ctx.fillStyle = 'white'
-			} else {
-				ctx.fillStyle = 'black'
+		function make2DGrid(rows, cols) {
+			let arr = new Array(rows);
+			for (let i = 0; i < arr.length; i++) {
+				arr[i] = new Array(cols);
 			}
-			ctx.fillRect(x, y, cellWidth, cellHeight);
-			x += cellWidth;
+			return arr;
 		}
-		x = 0;
-		y += cellHeight;
-	}
-}
 
-function setup() {
-	const arr = make2DGrid(100,100);
-	for (let i = 0; i < arr.length; i++) {
-		for (let j = 0; j < arr[i].length; j++) {
-			arr[i][j] = randomWithProbability()
+		function render(arr) {
+			const cellWidth = canvas.width / arr.length;
+			const cellHeight = cellWidth;
+			const ctx = canvas.getContext('2d');
+			console.table(arr)
+			let x = 0, y = 0;
+			for (let i = 0; i < arr.length; i++) {
+				for (let j = 0; j < arr[i].length; j++) {
+					if (arr[i][j]) {
+						ctx.fillStyle = 'white'
+					} else {
+						ctx.fillStyle = 'black'
+					}
+					ctx.fillRect(x, y, cellWidth, cellHeight);
+					x += cellWidth;
+				}
+				x = 0;
+				y += cellHeight;
+			}
 		}
-	}
-	render(arr);
-	setInterval(() => {
-		handleUpdate(arr);
-	}, 100);
-}
+		let time = 0, arr;
 
-function handleUpdate(arr) {
-	let newArr = arr.map(e => e.slice())
-	for (let i = 0; i < arr.length; i++) {
-		for (let j = 0; j < arr[i].length; j++) {
-			arr[i][j] = decideFate(newArr, i, j);
+		function setup() {
+			arr = make2DGrid(100, 100);
+			for (let i = 0; i < arr.length; i++) {
+				for (let j = 0; j < arr[i].length; j++) {
+					arr[i][j] = randomWithProbability()
+				}
+			}
+			render(arr);
+			// setInterval(() => {
+			// 	handleUpdate(arr);
+			// }, 100);
+			requestAnimationFrame(handleUpdate);
 		}
-	};
-	render(arr);
-}
 
-function decideFate(arr, i, j) {
-	let neightbours = [];
-	// handle corner cases
-	if (i === 0 && j === 0) {
-		neightbours = [arr[i + 1][j], arr[i + 1][j + 1], arr[i][j + 1]];
-	} else if (i === 0 && j === arr.length - 1) {
-		neightbours = ([arr[i][j - 1], arr[i + 1][j - 1], arr[i + 1][j]]);
-	} else if (j === 0 && i === arr.length - 1) {
-		neightbours = ([arr[i - 1][j], arr[i - 1][j + 1], arr[i][j + 1]]);
-	} else if (j === arr.length - 1 && i === arr.length - 1) {
-		neightbours = ([arr[i - 1][j - 1], arr[i - 1][j], arr[i][j - 1]]);
-	} else {
-		// handle edge cases
-		if (i === 0) {
-			neightbours = ([arr[i][j - 1], arr[i][j + 1], arr[i + 1][j - 1], arr[i + 1][j], arr[i + 1][j + 1]]);
-		} else if (j === 0) {
-			neightbours = ([arr[i - 1][j], arr[i - 1][j + 1], arr[i][j + 1], arr[i + 1][j], arr[i + 1][j + 1]]);
-		} else if (i === arr.length - 1) {
-			neightbours = ([arr[i - 1][j - 1], arr[i - 1][j], arr[i - 1][j + 1], arr[i][j - 1], arr[i][j + 1]]);
-		} else if (j === arr.length - 1) {
-			neightbours = ([arr[i - 1][j - 1], arr[i - 1][j], arr[i][j - 1], arr[i + 1][j - 1], arr[i + 1][j]]);
+		function handleUpdate() {
+			if (Date.now() - time > 100) {
+				time = Date.now();
+				let newArr = arr.map(e => e.slice())
+				for (let i = 0; i < arr.length; i++) {
+					for (let j = 0; j < arr[i].length; j++) {
+						arr[i][j] = decideFate(newArr, i, j);
+					}
+				};
+				render(arr);
+			}
+			requestAnimationFrame(handleUpdate);
 		}
-		
-		else {
-			// normal cases
-			neightbours = ([arr[i - 1][j - 1], arr[i - 1][j], arr[i - 1][j + 1], arr[i][j - 1], arr[i][j + 1], arr[i + 1][j - 1], arr[i + 1][j], arr[i + 1][j + 1]]);
+
+		function decideFate(arr, i, j) {
+			let neightbours = [];
+			// handle corner cases
+			if (i === 0 && j === 0) {
+				neightbours = [arr[i + 1][j], arr[i + 1][j + 1], arr[i][j + 1]];
+			} else if (i === 0 && j === arr.length - 1) {
+				neightbours = ([arr[i][j - 1], arr[i + 1][j - 1], arr[i + 1][j]]);
+			} else if (j === 0 && i === arr.length - 1) {
+				neightbours = ([arr[i - 1][j], arr[i - 1][j + 1], arr[i][j + 1]]);
+			} else if (j === arr.length - 1 && i === arr.length - 1) {
+				neightbours = ([arr[i - 1][j - 1], arr[i - 1][j], arr[i][j - 1]]);
+			} else {
+				// handle edge cases
+				if (i === 0) {
+					neightbours = ([arr[i][j - 1], arr[i][j + 1], arr[i + 1][j - 1], arr[i + 1][j], arr[i + 1][j + 1]]);
+				} else if (j === 0) {
+					neightbours = ([arr[i - 1][j], arr[i - 1][j + 1], arr[i][j + 1], arr[i + 1][j], arr[i + 1][j + 1]]);
+				} else if (i === arr.length - 1) {
+					neightbours = ([arr[i - 1][j - 1], arr[i - 1][j], arr[i - 1][j + 1], arr[i][j - 1], arr[i][j + 1]]);
+				} else if (j === arr.length - 1) {
+					neightbours = ([arr[i - 1][j - 1], arr[i - 1][j], arr[i][j - 1], arr[i + 1][j - 1], arr[i + 1][j]]);
+				}
+
+				else {
+					// normal cases
+					neightbours = ([arr[i - 1][j - 1], arr[i - 1][j], arr[i - 1][j + 1], arr[i][j - 1], arr[i][j + 1], arr[i + 1][j - 1], arr[i + 1][j], arr[i + 1][j + 1]]);
+				}
+
+			}
+			const living = neightbours.filter(e => e).length;
+			if (!arr[i][j] && living === 3) {
+				return 1;
+			}
+			if (arr[i][j] && (living < 2 || living > 3)) {
+				return 0;
+			}
+			return arr[i][j];
 		}
-		
-	}
-	const living = neightbours.filter(e => e).length;
-	if (!arr[i][j] && living === 3) {
-			return 1;
+		function randomWithProbability() {
+			var notRandomNumbers = [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0];
+			var idx = Math.floor(Math.random() * notRandomNumbers.length);
+			return notRandomNumbers[idx];
 		}
-	if (arr[i][j] && (living < 2 || living > 3)) {
-		return 0;
-	}
-	return arr[i][j];
-}
-function randomWithProbability() {
-  var notRandomNumbers = [0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0, 0, 0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0];
-  var idx = Math.floor(Math.random() * notRandomNumbers.length);
-  return notRandomNumbers[idx];
-}
-setup()
-console.log({width: canvas.width, height: canvas.height})
+		setup()
+		console.log({ width: canvas.width, height: canvas.height })
 //# sourceURL=userscript.js
-</script>
+	</script>
 </body>
+
 </html>
